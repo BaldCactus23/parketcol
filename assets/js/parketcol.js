@@ -80,7 +80,7 @@
 
   var burger = root.querySelector("[data-pc-burger]");
   var nav = root.querySelector("[data-pc-nav]");
-  var desktop = window.matchMedia("(min-width: 1080px)");
+  var desktop = window.matchMedia("(min-width: 1200px)");
 
   function setMenu(open, returnFocus) {
     if (!burger || !nav) return;
@@ -177,6 +177,39 @@
       cookie.hidden = true;
       try { window.localStorage.setItem(KEY, "1"); } catch (err) { return; }
     });
+  }
+
+  var ticker = root.querySelector("[data-pc-ticker]");
+  var tickerToggle = root.querySelector("[data-pc-ticker-toggle]");
+  if (ticker && tickerToggle) {
+    tickerToggle.addEventListener("click", function () {
+      var paused = !ticker.classList.contains("is-paused");
+      ticker.classList.toggle("is-paused", paused);
+      tickerToggle.setAttribute("aria-pressed", String(paused));
+      tickerToggle.querySelector(".pc-visually-hidden").textContent = paused ? "Запустить бегущую строку" : "Остановить бегущую строку";
+    });
+  }
+
+  var shelf = root.querySelector("[data-pc-shelf-list]");
+  var shelfButtons = root.querySelectorAll("[data-pc-shelf]");
+  if (shelf && shelfButtons.length) {
+    var updateShelf = function () {
+      var max = shelf.scrollWidth - shelf.clientWidth - 2;
+      shelfButtons.forEach(function (btn) {
+        var dir = Number(btn.getAttribute("data-pc-shelf"));
+        btn.disabled = dir < 0 ? shelf.scrollLeft <= 2 : shelf.scrollLeft >= max;
+      });
+    };
+    shelfButtons.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var item = shelf.querySelector(".pc-shelf__item");
+        var step = item ? item.getBoundingClientRect().width + 24 : shelf.clientWidth * 0.8;
+        shelf.scrollBy({ left: step * Number(btn.getAttribute("data-pc-shelf")), behavior: reduceMotion ? "auto" : "smooth" });
+      });
+    });
+    shelf.addEventListener("scroll", updateShelf, { passive: true });
+    window.addEventListener("resize", updateShelf);
+    updateShelf();
   }
 
   root.querySelectorAll("[data-pc-year]").forEach(function (el) {
